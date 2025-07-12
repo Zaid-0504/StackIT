@@ -1,15 +1,12 @@
-// components/AuthDialog.js
 import React, { useState } from "react"
 import { X } from "lucide-react"
-import Button from "./Button" // Assumes Button is a reusable component
+import Button from "./Button"
 
 const AuthDialog = ({ isOpen, onClose, onLogin }) => {
   const [isSignup, setIsSignup] = useState(false)
   const [formData, setFormData] = useState({
     email: "",
     username: "",
-    fullName: "",
-    dob: "",
     password: "",
     confirmPassword: "",
   })
@@ -30,8 +27,6 @@ const AuthDialog = ({ isOpen, onClose, onLogin }) => {
       ? {
           email: formData.email,
           username: formData.username,
-          fullName: formData.fullName,
-          dob: formData.dob,
           password: formData.password,
         }
       : {
@@ -76,52 +71,18 @@ const AuthDialog = ({ isOpen, onClose, onLogin }) => {
           </div>
 
           {isSignup && (
-            <>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Username
-                </label>
+            <div>
+              <label className="block text-sm font-medium mb-1">Username</label>
 
-                <input
-                  name="username"
-                  type="text"
-                  value={formData.username}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Full Name
-                </label>
-
-                <input
-                  name="fullName"
-                  type="text"
-                  value={formData.fullName}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Date of Birth
-                </label>
-
-                <input
-                  name="dob"
-                  type="date"
-                  value={formData.dob}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                />
-              </div>
-            </>
+              <input
+                name="username"
+                type="text"
+                value={formData.username}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
           )}
 
           <div>
