@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react"
 import {
   Search,
@@ -16,6 +17,9 @@ import {
   Menu,
   Filter,
 } from "lucide-react"
+
+import { useAuth } from "../utils/authContext"
+import AuthDialog from "../components/AuthDialog"
 
 // Mock data
 const mockQuestions = [
@@ -81,53 +85,6 @@ const mockAnswers = [
     isAccepted: false,
   },
 ]
-
-// Context for authentication
-const AuthContext = React.createContext()
-
-// Custom hook for auth
-const useAuth = () => {
-  const context = React.useContext(AuthContext)
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider")
-  }
-  return context
-}
-
-// Auth Provider
-const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null)
-  const [isLoading, setIsLoading] = useState(false)
-
-  const login = async (email, password) => {
-    setIsLoading(true)
-    // Simulate API call
-    setTimeout(() => {
-      setUser({
-        id: 1,
-        name: "John Doe",
-        email: email,
-        avatar:
-          "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face&round=true",
-        role: "user",
-      })
-      setIsLoading(false)
-    }, 1000)
-  }
-
-  const logout = () => {
-    setUser(null)
-  }
-
-  const value = {
-    user,
-    login,
-    logout,
-    isLoading,
-  }
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-}
 
 // Reusable Button Component
 const Button = ({
@@ -324,7 +281,9 @@ const Header = ({ onLoginClick, onMenuClick, isMobileMenuOpen }) => {
             >
               <Menu size={20} />
             </button>
-            <h1 className="text-2xl font-bold text-gray-900 ml-2">StackIt</h1>
+            <h1 className="text-2xl font-bold text-gray-900 ml-2">
+              HomeScreen
+            </h1>
           </div>
 
           {/* Search Bar - Hidden on mobile */}
@@ -381,83 +340,6 @@ const Header = ({ onLoginClick, onMenuClick, isMobileMenuOpen }) => {
   )
 }
 
-// Login Modal Component
-const LoginModal = ({ isOpen, onClose }) => {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [isSignup, setIsSignup] = useState(false)
-  const { login, isLoading } = useAuth()
-
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    login(email, password)
-    onClose()
-  }
-
-  if (!isOpen) return null
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">
-            {isSignup ? "Sign Up" : "Login"}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <X size={24} />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-          </div>
-
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Loading..." : isSignup ? "Sign Up" : "Login"}
-          </Button>
-        </form>
-
-        <div className="mt-4 text-center">
-          <button
-            onClick={() => setIsSignup(!isSignup)}
-            className="text-blue-600 hover:text-blue-800 text-sm"
-          >
-            {isSignup
-              ? "Already have an account? Login"
-              : "Don't have an account? Sign up"}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 // Filter Component
 const FilterBar = ({ activeFilter, onFilterChange }) => {
   const filters = [
@@ -468,118 +350,23 @@ const FilterBar = ({ activeFilter, onFilterChange }) => {
   ]
 
   return (
-    <div className="flex items-center gap-2 mb-6">
+    <div className="flex flex-col gap-2 mb-6">
       <div className="flex items-center gap-2">
         {filters.map((filter) => (
           <button
             key={filter.id}
             onClick={() => onFilterChange(filter.id)}
-            className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors flex items-center ${
               activeFilter === filter.id
                 ? "bg-blue-600 text-white"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
-            {filter.label}
+            <span>{filter.label}</span>
             {filter.id === "more" && <ChevronDown size={16} className="ml-1" />}
           </button>
         ))}
       </div>
-    </div>
-  )
-}
-
-// Ask Question Form Component
-const AskQuestionForm = ({ onSubmit, onCancel }) => {
-  const [title, setTitle] = useState("")
-  const [description, setDescription] = useState("")
-  const [tags, setTags] = useState([])
-  const [tagInput, setTagInput] = useState("")
-
-  const handleTagAdd = (e) => {
-    if (e.key === "Enter" && tagInput.trim()) {
-      e.preventDefault()
-      if (!tags.includes(tagInput.trim())) {
-        setTags([...tags, tagInput.trim()])
-      }
-      setTagInput("")
-    }
-  }
-
-  const handleTagRemove = (tagToRemove) => {
-    setTags(tags.filter((tag) => tag !== tagToRemove))
-  }
-
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    onSubmit({
-      title,
-      description,
-      tags,
-    })
-  }
-
-  return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
-      <h2 className="text-xl font-semibold mb-4">Ask a Question</h2>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Title
-          </label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="What's your programming question? Be specific."
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Description
-          </label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={8}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Include all the information someone would need to answer your question..."
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Tags
-          </label>
-          <input
-            type="text"
-            value={tagInput}
-            onChange={(e) => setTagInput(e.target.value)}
-            onKeyDown={handleTagAdd}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Press Enter to add tags (e.g., javascript, react, node.js)"
-          />
-          <div className="flex flex-wrap gap-2 mt-2">
-            {tags.map((tag) => (
-              <Tag key={tag} removable onRemove={() => handleTagRemove(tag)}>
-                {tag}
-              </Tag>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex gap-2">
-          <Button type="submit">Post Question</Button>
-          <Button variant="secondary" onClick={onCancel}>
-            Cancel
-          </Button>
-        </div>
-      </form>
     </div>
   )
 }
@@ -758,8 +545,10 @@ const MobileSearch = ({ isOpen, onClose }) => {
   )
 }
 
+
+
 // Main App Component
-const StackIt = () => {
+const HomeScreen = () => {
   const [currentView, setCurrentView] = useState("home")
   const [selectedQuestion, setSelectedQuestion] = useState(null)
   const [showLogin, setShowLogin] = useState(false)
@@ -767,6 +556,7 @@ const StackIt = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [showMobileSearch, setShowMobileSearch] = useState(false)
   const [questions, setQuestions] = useState(mockQuestions)
+  const { login } = useAuth()
 
   const handleQuestionClick = (question) => {
     setSelectedQuestion(question)
@@ -844,14 +634,7 @@ const StackIt = () => {
                 >
                   <Search size={20} />
                 </button>
-
-                <Button
-                  onClick={handleAskQuestion}
-                  className="whitespace-nowrap"
-                >
-                  <Plus size={20} />
-                  Ask Question
-                </Button>
+               
               </div>
             </div>
 
@@ -899,30 +682,32 @@ const StackIt = () => {
   }
 
   return (
-    <AuthProvider>
-      <div className="min-h-screen bg-gray-50">
-        <Header
-          onLoginClick={() => setShowLogin(true)}
-          onMenuClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          isMobileMenuOpen={isMobileMenuOpen}
+    <div className="min-h-screen bg-gray-50">
+      <Header
+        onLoginClick={() => setShowLogin(true)}
+        onMenuClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        isMobileMenuOpen={isMobileMenuOpen}
+      />
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {renderContent()}
+      </main>
+
+      <AuthDialog
+        isOpen={showLogin}
+        onClose={() => setShowLogin(false)}
+        onLogin={({ email, password }) => login(email, password)}
+      />
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
         />
-
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {renderContent()}
-        </main>
-
-        <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} />
-
-        {/* Mobile Menu Overlay */}
-        {isMobileMenuOpen && (
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-            onClick={() => setIsMobileMenuOpen(false)}
-          />
-        )}
-      </div>
-    </AuthProvider>
+      )}
+    </div>
   )
 }
 
-export default StackIt
+export default HomeScreen
