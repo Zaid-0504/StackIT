@@ -1,18 +1,18 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
-import { useState } from "react"
 import "./App.css"
 import HomeScreen from "./screens/HomeScreen"
 import { AuthProvider } from "./utils/authContext"
+import AskForm from "./screens/AskForm"
 
 
 function App() {
-  const [count, setCount] = useState(0)
 
   return (
     <AuthProvider>
       <Router>
         <Routes>
           <Route path="/" element={<HomeScreen />} />
+          <Route path="/ask" element={<AskForm/>}/>
         </Routes>
       </Router>
     </AuthProvider>

@@ -545,8 +545,6 @@ const MobileSearch = ({ isOpen, onClose }) => {
   )
 }
 
-
-
 // Main App Component
 const HomeScreen = () => {
   const [currentView, setCurrentView] = useState("home")
@@ -634,7 +632,6 @@ const HomeScreen = () => {
                 >
                   <Search size={20} />
                 </button>
-               
               </div>
             </div>
 
@@ -696,7 +693,13 @@ const HomeScreen = () => {
       <AuthDialog
         isOpen={showLogin}
         onClose={() => setShowLogin(false)}
-        onLogin={({ email, password }) => login(email, password)}
+        onLogin={(data) => {
+          if (data.username) {
+            // handle signup
+          } else {
+            login(data.email, data.password)
+          }
+        }}
       />
 
       {/* Mobile Menu Overlay */}
