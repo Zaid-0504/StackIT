@@ -2,19 +2,18 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/*.py",
+      "src": "backend/*.py",
       "use": "@vercel/python",
       "config": {
-        "maxLambdaSize": "15mb",
         "runtime": "python3.9",
-        "installCommand": "pip install --disable-pip-version-check --target . --upgrade -r requirements.txt --no-binary psycopg2-binary"
+        "installCommand": "python -m pip install -r requirements.txt --ignore-installed"
       }
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "api/index.py"
+      "dest": "backend/api.py"
     }
   ],
   "env": {
