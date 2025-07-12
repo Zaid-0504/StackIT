@@ -42,6 +42,7 @@ const dummyAnswers = [
     upvotes: 40,
     downvotes: 3,
     score: 37,
+    questionId: 1,
     is_accepted: true,
     created_at: "2025-07-11T15:45:00Z",
     author: {
@@ -57,6 +58,7 @@ const dummyAnswers = [
     upvotes: 22,
     downvotes: 0,
     score: 22,
+    questionId: 1,
     is_accepted: false,
     created_at: "2025-07-11T16:00:00Z",
     author: {
@@ -69,7 +71,10 @@ const dummyAnswers = [
 
 const QuestionPage = () => {
   const [question] = useState(dummyQuestion)
-  const [answers] = useState(dummyAnswers)
+  const [answers] = useState(
+    dummyAnswers.filter((a) => a.questionId === dummyQuestion.id)
+  )
+
   const [headingLevel, setHeadingLevel] = useState("Paragraph")
   const [isLinkMenuOpen, setIsLinkMenuOpen] = useState(false)
   const [linkUrl, setLinkUrl] = useState("")
