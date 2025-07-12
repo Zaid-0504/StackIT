@@ -16,15 +16,18 @@ import {
   X,
   Menu,
   Filter,
+  Trash2, // Added for delete button
 } from "lucide-react"
 
 import { useAuth } from "../utils/authContext"
 import AuthDialog from "../components/AuthDialog"
+import { useNavigate } from "react-router-dom" // Uncomment when using React Router
 
 // Mock data
 const mockQuestions = [
   {
     id: 1,
+    _id: "507f1f77bcf86cd799439011", // Added MongoDB-style ID
     title:
       "How to join 2 columns in a data set to make a separate column in SQL",
     description:
@@ -39,6 +42,7 @@ const mockQuestions = [
   },
   {
     id: 2,
+    _id: "507f1f77bcf86cd799439012", // Added MongoDB-style ID
     title: "React useState not updating immediately",
     description:
       "I'm having trouble with useState not updating the state immediately after calling the setter function...",
@@ -52,6 +56,7 @@ const mockQuestions = [
   },
   {
     id: 3,
+    _id: "507f1f77bcf86cd799439013", // Added MongoDB-style ID
     title: "Best practices for Node.js error handling",
     description:
       "What are the recommended patterns for handling errors in Node.js applications?",
@@ -62,27 +67,6 @@ const mockQuestions = [
     views: 234,
     timeAgo: "2 ans",
     isAnswered: true,
-  },
-]
-
-const mockAnswers = [
-  {
-    id: 1,
-    content:
-      "You can use the CONCAT function in SQL to combine two columns. Here's the syntax: SELECT CONCAT(first_name, ' ', last_name) AS full_name FROM your_table;",
-    author: "SQL Expert",
-    votes: 12,
-    timeAgo: "4 ans",
-    isAccepted: true,
-  },
-  {
-    id: 2,
-    content:
-      "Another approach is to use the || operator (in PostgreSQL) or + operator (in SQL Server): SELECT first_name || ' ' || last_name AS full_name FROM your_table;",
-    author: "Database Pro",
-    votes: 8,
-    timeAgo: "3 ans",
-    isAccepted: false,
   },
 ]
 
@@ -106,6 +90,7 @@ const Button = ({
     outline:
       "border-2 border-blue-600 text-blue-600 hover:bg-blue-50 disabled:border-blue-300",
     ghost: "text-gray-600 hover:bg-gray-100 disabled:text-gray-400",
+    danger: "bg-red-600 text-white hover:bg-red-700 disabled:bg-red-300", // Added danger variant
   }
 
   const sizes = {
@@ -185,7 +170,7 @@ const VoteButtons = ({ votes, onUpvote, onDownvote, userVote }) => {
 }
 
 // Question Card Component
-const QuestionCard = ({ question, onClick }) => {
+const QuestionCard = ({ question, onClick, onDelete, isAdmin = false }) => {
   const [userVote, setUserVote] = useState(null)
   const [voteCount, setVoteCount] = useState(question.votes)
 
@@ -211,11 +196,29 @@ const QuestionCard = ({ question, onClick }) => {
     }
   }
 
+  const handleDelete = (e) => {
+    e.stopPropagation()
+    if (window.confirm("Are you sure you want to delete this question?")) {
+      onDelete(question.id)
+    }
+  }
+
   return (
     <div
-      className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer"
+      className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer relative"
       onClick={onClick}
     >
+      {/* Admin Delete Button */}
+      {isAdmin && (
+        <button
+          onClick={handleDelete}
+          className="absolute top-4 right-4 p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors"
+          title="Delete question"
+        >
+          <Trash2 size={18} />
+        </button>
+      )}
+
       <div className="flex gap-4">
         <VoteButtons
           votes={voteCount}
@@ -265,73 +268,98 @@ const QuestionCard = ({ question, onClick }) => {
 }
 
 // Header Component
-const Header = ({ onLoginClick, onMenuClick, isMobileMenuOpen }) => {
-  const { user, logout } = useAuth()
-  const [notifications, setNotifications] = useState(3)
+const Header = ({ onLoginClick, onAskQuestion }) => {
+  const { user } = useAuth()
+  const navigate = useNavigate() // Uncomment when using React Router
+
+  const handleAskQuestion = () => {
+    navigate("/ask") // Uncomment when using React Router
+    onAskQuestion() // Keep for current demo
+  }
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo and Mobile Menu */}
-          <div className="flex items-center">
+    <header className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white shadow-2xl border-b border-slate-700/50 backdrop-blur-sm">
+      <div className="max-w-7xl mx-auto px-6 py-5">
+        <div className="flex flex-wrap justify-between items-center gap-6">
+          {/* Left: Logo + Ask New Question */}
+          <div className="flex items-center gap-8">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                <span className="text-white font-bold text-xl">S</span>
+              </div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent tracking-wide">
+                StackIt
+              </h1>
+            </div>
             <button
-              onClick={onMenuClick}
-              className="lg:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100"
+              onClick={handleAskQuestion}
+              className="group relative bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-2.5 rounded-xl font-medium shadow-lg hover:shadow-xl hover:from-blue-500 hover:to-blue-600 transition-all duration-300 transform hover:scale-105"
             >
-              <Menu size={20} />
+              <span className="relative z-10">Ask New Question</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-blue-500 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </button>
-            <h1 className="text-2xl font-bold text-gray-900 ml-2">
-              HomeScreen
-            </h1>
           </div>
 
-          {/* Search Bar - Hidden on mobile */}
-          <div className="hidden md:flex flex-1 max-w-2xl mx-8">
-            <div className="relative w-full">
+          {/* Middle: Filters */}
+          <div className="flex items-center gap-2 bg-slate-800/60 backdrop-blur-sm border border-slate-600/50 rounded-2xl px-4 py-2.5 shadow-lg">
+            <button className="text-slate-300 hover:text-white hover:bg-slate-700/50 px-4 py-2 rounded-xl font-medium transition-all duration-200">
+              Newest
+            </button>
+            <div className="w-px h-5 bg-slate-600"></div>
+            <button className="text-slate-300 hover:text-white hover:bg-slate-700/50 px-4 py-2 rounded-xl font-medium transition-all duration-200">
+              Unanswered
+            </button>
+            <div className="w-px h-5 bg-slate-600"></div>
+            <button className="text-slate-300 hover:text-white hover:bg-slate-700/50 px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2">
+              More
+              <ChevronDown
+                size={16}
+                className="transition-transform duration-200 group-hover:rotate-180"
+              />
+            </button>
+          </div>
+
+          {/* Right: Search + Login */}
+          <div className="flex items-center gap-5">
+            <div className="relative group">
               <Search
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                size={20}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-400 transition-colors duration-200"
+                size={18}
               />
               <input
                 type="text"
                 placeholder="Search questions..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="pl-12 pr-4 py-3 rounded-2xl bg-slate-800/60 backdrop-blur-sm text-white placeholder-slate-400 border border-slate-600/50 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300 w-64 shadow-lg"
               />
             </div>
-          </div>
 
-          {/* User Actions */}
-          <div className="flex items-center gap-4">
             {user ? (
-              <>
-                <button className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
-                  <Bell size={20} />
-                  {notifications > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                      {notifications}
-                    </span>
-                  )}
-                </button>
-
-                <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3 bg-slate-800/40 backdrop-blur-sm border border-slate-600/50 rounded-2xl px-4 py-2.5 shadow-lg hover:bg-slate-700/40 transition-all duration-200">
+                <div className="relative">
                   <img
                     src={user.avatar}
-                    alt={user.name}
-                    className="w-8 h-8 rounded-full"
+                    alt="User avatar"
+                    className="w-9 h-9 rounded-xl object-cover ring-2 ring-slate-600/50"
                   />
-                  <span className="hidden sm:block text-sm font-medium text-gray-700">
+                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-slate-800"></div>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-white">
                     {user.name}
                   </span>
-                  <Button variant="ghost" size="sm" onClick={logout}>
-                    Logout
-                  </Button>
+                  <span className="text-xs text-slate-400">
+                    {user.isAdmin ? "Admin" : "Online"}
+                  </span>
                 </div>
-              </>
+              </div>
             ) : (
-              <Button onClick={onLoginClick} size="sm">
-                Login
-              </Button>
+              <button
+                onClick={onLoginClick}
+                className="group relative bg-transparent border-2 border-slate-600/50 text-white px-6 py-2.5 rounded-2xl font-medium hover:border-white hover:bg-white hover:text-slate-900 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                <span className="relative z-10">Login</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              </button>
             )}
           </div>
         </div>
@@ -371,159 +399,6 @@ const FilterBar = ({ activeFilter, onFilterChange }) => {
   )
 }
 
-// Question Detail Component
-const QuestionDetail = ({ question, onBack }) => {
-  const [newAnswer, setNewAnswer] = useState("")
-  const [answers, setAnswers] = useState(mockAnswers)
-  const { user } = useAuth()
-
-  const handleAnswerSubmit = (e) => {
-    e.preventDefault()
-    if (newAnswer.trim()) {
-      const answer = {
-        id: Date.now(),
-        content: newAnswer,
-        author: user?.name || "Anonymous",
-        votes: 0,
-        timeAgo: "just now",
-        isAccepted: false,
-      }
-      setAnswers([...answers, answer])
-      setNewAnswer("")
-    }
-  }
-
-  return (
-    <div className="space-y-6">
-      {/* Question */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <button
-            onClick={onBack}
-            className="text-blue-600 hover:text-blue-800"
-          >
-            ← Back to questions
-          </button>
-        </div>
-
-        <div className="flex gap-4">
-          <VoteButtons
-            votes={question.votes}
-            onUpvote={() => {}}
-            onDownvote={() => {}}
-          />
-
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
-              {question.title}
-            </h1>
-
-            <div className="prose max-w-none mb-4">
-              <p className="text-gray-700">{question.description}</p>
-            </div>
-
-            <div className="flex gap-2 mb-4">
-              {question.tags.map((tag) => (
-                <Tag key={tag}>{tag}</Tag>
-              ))}
-            </div>
-
-            <div className="flex items-center justify-between text-sm text-gray-500">
-              <div className="flex items-center gap-4">
-                <span>{question.answers} answers</span>
-                <span>{question.views} views</span>
-              </div>
-              <div>
-                asked {question.timeAgo} by{" "}
-                <span className="font-medium">{question.author}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Answers */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h2 className="text-xl font-semibold mb-4">
-          {answers.length} Answer{answers.length !== 1 ? "s" : ""}
-        </h2>
-
-        <div className="space-y-6">
-          {answers.map((answer) => (
-            <div
-              key={answer.id}
-              className="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0"
-            >
-              <div className="flex gap-4">
-                <VoteButtons
-                  votes={answer.votes}
-                  onUpvote={() => {}}
-                  onDownvote={() => {}}
-                />
-
-                <div className="flex-1">
-                  {answer.isAccepted && (
-                    <div className="flex items-center gap-2 mb-2">
-                      <Check className="text-green-600" size={20} />
-                      <span className="text-green-600 font-medium">
-                        Accepted Answer
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="prose max-w-none mb-4">
-                    <p className="text-gray-700">{answer.content}</p>
-                  </div>
-
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <div className="flex items-center gap-2">
-                      <button className="text-blue-600 hover:text-blue-800">
-                        Share
-                      </button>
-                      <button className="text-blue-600 hover:text-blue-800">
-                        Edit
-                      </button>
-                      <button className="text-blue-600 hover:text-blue-800">
-                        Follow
-                      </button>
-                    </div>
-                    <div>
-                      answered {answer.timeAgo} by{" "}
-                      <span className="font-medium">{answer.author}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Submit Answer */}
-      {user && (
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold mb-4">Your Answer</h3>
-
-          <form onSubmit={handleAnswerSubmit} className="space-y-4">
-            <div>
-              <textarea
-                value={newAnswer}
-                onChange={(e) => setNewAnswer(e.target.value)}
-                rows={6}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Write your answer here..."
-                required
-              />
-            </div>
-
-            <Button type="submit">Post Your Answer</Button>
-          </form>
-        </div>
-      )}
-    </div>
-  )
-}
-
 // Mobile Search Component
 const MobileSearch = ({ isOpen, onClose }) => {
   if (!isOpen) return null
@@ -547,135 +422,39 @@ const MobileSearch = ({ isOpen, onClose }) => {
 
 // Main App Component
 const HomeScreen = () => {
-  const [currentView, setCurrentView] = useState("home")
-  const [selectedQuestion, setSelectedQuestion] = useState(null)
   const [showLogin, setShowLogin] = useState(false)
   const [activeFilter, setActiveFilter] = useState("newest")
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [showMobileSearch, setShowMobileSearch] = useState(false)
   const [questions, setQuestions] = useState(mockQuestions)
-  const { login } = useAuth()
+  const { user, login } = useAuth()
+  const navigate = useNavigate() // Uncomment when using React Router
+
+  // Check if user is admin
+  const isAdmin = user && user.isAdmin
 
   const handleQuestionClick = (question) => {
-    setSelectedQuestion(question)
-    setCurrentView("question-detail")
+    // Method 1: Navigate to question page with ID
+    navigate(`/question`)
+    // navigate(`/question/${question._id}`)
+
+    // Method 2: Navigate to generic question page (current demo)
+    // navigate('/question', { state: { question } })
+
+    // For demo purposes, we'll just log the navigation
+    console.log(`Would navigate to /question/${question._id}`)
+
+    // You can also store the question ID in localStorage for the question page to use
+    localStorage.setItem("currentQuestionId", question._id)
   }
 
   const handleAskQuestion = () => {
-    setCurrentView("ask-question")
+    navigate("/ask") // Uncomment when using React Router
+    console.log("Would navigate to /ask")
   }
 
-  const handleQuestionSubmit = (questionData) => {
-    const newQuestion = {
-      id: Date.now(),
-      title: questionData.title,
-      description: questionData.description,
-      tags: questionData.tags,
-      author: "Current User",
-      votes: 0,
-      answers: 0,
-      views: 0,
-      timeAgo: "just now",
-      isAnswered: false,
-    }
-    setQuestions([newQuestion, ...questions])
-    setCurrentView("home")
-  }
-
-  const handleBackToHome = () => {
-    setCurrentView("home")
-    setSelectedQuestion(null)
-  }
-
-  const renderContent = () => {
-    switch (currentView) {
-      case "ask-question":
-        return (
-          <AskQuestionForm
-            onSubmit={handleQuestionSubmit}
-            onCancel={handleBackToHome}
-          />
-        )
-
-      case "question-detail":
-        return (
-          <QuestionDetail
-            question={selectedQuestion}
-            onBack={handleBackToHome}
-          />
-        )
-
-      default:
-        return (
-          <div className="space-y-6">
-            {/* Mobile Search */}
-            <MobileSearch
-              isOpen={showMobileSearch}
-              onClose={() => setShowMobileSearch(false)}
-            />
-
-            {/* Header Actions */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <h2 className="text-xl font-semibold text-gray-900">
-                  All Questions
-                </h2>
-                <span className="text-gray-500">
-                  {questions.length} questions
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setShowMobileSearch(!showMobileSearch)}
-                  className="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
-                >
-                  <Search size={20} />
-                </button>
-              </div>
-            </div>
-
-            {/* Filters */}
-            <FilterBar
-              activeFilter={activeFilter}
-              onFilterChange={setActiveFilter}
-            />
-
-            {/* Questions List */}
-            <div className="space-y-4">
-              {questions.map((question) => (
-                <QuestionCard
-                  key={question.id}
-                  question={question}
-                  onClick={() => handleQuestionClick(question)}
-                />
-              ))}
-            </div>
-
-            {/* Pagination */}
-            <div className="flex items-center justify-center gap-2 mt-8">
-              <button className="px-3 py-2 text-gray-500 hover:text-gray-700">
-                ‹
-              </button>
-              {[1, 2, 3, 4, 5, 6, 7].map((page) => (
-                <button
-                  key={page}
-                  className={`px-3 py-2 rounded ${
-                    page === 1
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  {page}
-                </button>
-              ))}
-              <button className="px-3 py-2 text-gray-500 hover:text-gray-700">
-                ›
-              </button>
-            </div>
-          </div>
-        )
-    }
+  const handleDeleteQuestion = (questionId) => {
+    setQuestions(questions.filter((q) => q.id !== questionId))
   }
 
   return (
@@ -684,10 +463,85 @@ const HomeScreen = () => {
         onLoginClick={() => setShowLogin(true)}
         onMenuClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         isMobileMenuOpen={isMobileMenuOpen}
+        onAskQuestion={handleAskQuestion}
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {renderContent()}
+        <div className="space-y-6">
+          {/* Mobile Search */}
+          <MobileSearch
+            isOpen={showMobileSearch}
+            onClose={() => setShowMobileSearch(false)}
+          />
+
+          {/* Header Actions */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <h2 className="text-xl font-semibold text-gray-900">
+                All Questions
+              </h2>
+              <span className="text-gray-500">
+                {questions.length} questions
+              </span>
+              {isAdmin && (
+                <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">
+                  Admin Mode
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowMobileSearch(!showMobileSearch)}
+                className="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+              >
+                <Search size={20} />
+              </button>
+            </div>
+          </div>
+
+          {/* Filters */}
+          <FilterBar
+            activeFilter={activeFilter}
+            onFilterChange={setActiveFilter}
+          />
+
+          {/* Questions List */}
+          <div className="space-y-4">
+            {questions.map((question) => (
+              <QuestionCard
+                key={question.id}
+                question={question}
+                onClick={() => handleQuestionClick(question)}
+                onDelete={handleDeleteQuestion}
+                // isAdmin={isAdmin}
+                isAdmin={true}
+              />
+            ))}
+          </div>
+
+          {/* Pagination */}
+          <div className="flex items-center justify-center gap-2 mt-8">
+            <button className="px-3 py-2 text-gray-500 hover:text-gray-700">
+              ‹
+            </button>
+            {[1, 2, 3, 4, 5, 6, 7].map((page) => (
+              <button
+                key={page}
+                className={`px-3 py-2 rounded ${
+                  page === 1
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+            <button className="px-3 py-2 text-gray-500 hover:text-gray-700">
+              ›
+            </button>
+          </div>
+        </div>
       </main>
 
       <AuthDialog
@@ -714,3 +568,39 @@ const HomeScreen = () => {
 }
 
 export default HomeScreen
+
+/* 
+ROUTING IMPLEMENTATION NOTES:
+
+1. To implement React Router navigation, uncomment the following lines:
+   - import { useNavigate } from "react-router-dom"
+   - const navigate = useNavigate()
+   
+2. Navigation functions:
+   - Question click: navigate(`/question/${question._id}`)
+   - Ask question: navigate('/ask')
+   
+3. Route structure should be:
+   - Home: '/'
+   - Question detail: '/question/:id'
+   - Ask question: '/ask'
+   
+4. In your main App.js, set up routes like:
+   ```
+   <Routes>
+     <Route path="/" element={<HomeScreen />} />
+     <Route path="/question/:id" element={<QuestionDetailScreen />} />
+     <Route path="/ask" element={<AskQuestionScreen />} />
+   </Routes>
+   ```
+   
+5. Admin functionality:
+   - Add isAdmin property to user object in auth context
+   - Delete button only appears for admin users
+   - Admin status is shown in header
+   
+6. Question ID handling:
+   - Each question now has both 'id' and '_id' properties
+   - '_id' is used for MongoDB-style routing
+   - LocalStorage backup for question ID if needed
+*/
