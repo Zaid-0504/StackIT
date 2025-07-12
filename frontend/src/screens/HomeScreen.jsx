@@ -300,24 +300,7 @@ const Header = ({ onLoginClick, onAskQuestion }) => {
             </button>
           </div>
 
-          {/* Middle: Filters */}
-          <div className="flex items-center gap-2 bg-slate-800/60 backdrop-blur-sm border border-slate-600/50 rounded-2xl px-4 py-2.5 shadow-lg">
-            <button className="text-slate-300 hover:text-white hover:bg-slate-700/50 px-4 py-2 rounded-xl font-medium transition-all duration-200">
-              Newest
-            </button>
-            <div className="w-px h-5 bg-slate-600"></div>
-            <button className="text-slate-300 hover:text-white hover:bg-slate-700/50 px-4 py-2 rounded-xl font-medium transition-all duration-200">
-              Unanswered
-            </button>
-            <div className="w-px h-5 bg-slate-600"></div>
-            <button className="text-slate-300 hover:text-white hover:bg-slate-700/50 px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2">
-              More
-              <ChevronDown
-                size={16}
-                className="transition-transform duration-200 group-hover:rotate-180"
-              />
-            </button>
-          </div>
+          
 
           {/* Right: Search + Login */}
           <div className="flex items-center gap-5">
